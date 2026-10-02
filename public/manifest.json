@@ -1,0 +1,48 @@
+{
+  "manifest_version": 3,
+  "name": "DSA AutoPush",
+  "description": "Automatically captures accepted LeetCode, HackerRank, and Codeforces submissions and pushes them to your GitHub repository.",
+  "version": "1.0.0",
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
+  "action": {
+    "default_popup": "popup/index.html",
+    "default_icon": {
+      "16": "icon.png",
+      "48": "icon.png",
+      "128": "icon.png"
+    }
+  },
+  "background": {
+    "service_worker": "background/background.js",
+    "type": "module"
+  },
+  "permissions": ["storage", "notifications"],
+  "host_permissions": [
+    "https://api.github.com/*",
+    "https://github.com/*",
+    "https://leetcode.com/*",
+    "https://www.hackerrank.com/*",
+    "https://codeforces.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://leetcode.com/problems/*"],
+      "js": ["content/leetcode.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://www.hackerrank.com/challenges/*", "https://www.hackerrank.com/contests/*"],
+      "js": ["content/hackerrank.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://codeforces.com/*"],
+      "js": ["content/codeforces.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

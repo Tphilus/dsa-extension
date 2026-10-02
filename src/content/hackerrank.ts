@@ -1,0 +1,93 @@
+import { debounce, extractEditorCode, findElementByExactText } from '../utils/dom-utils'
+import type { Submission, SubmissionResponse } from '../utils/types'
+
+const DIFFICULTIES = ['Easy', 'Medium', 'Hard', 'Basic', 'Advanced', 'Expert']
+
+let lastProcessedKey: string | null = null
+let currentPath = window.location.pathname
+
+function getSlugFromPath(): string | null {
+  const match = window.location.pathname.match(/challenges\/([^/]+)/)
+  return match ? match[1] : null
+}
+
+function getTitle(slug: string | null): string {
+  const titleEl = document.querySelector('.challenge-page-title, [class*="challenge-title"], h1')
+  if (titleEl && titleEl.textContent?.trim()) return titleEl.textContent.trim()
+  return (slug || 'untitled').replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+}
+
+function getDifficulty(): string {
+  for (const level of DIFFICULTIES) {
+    const el = findElementByExactText(document, level, '[class*="difficulty"], [class*="Difficulty"], span, div')
+    if (el) return level
+  }
+  return 'unknown'
+}
+
+function getLanguage(): string {
+  const select = document.querySelector<HTMLSelectElement>('select[id*="language"], select[name*="language"]')
+  if (select && select.selectedIndex >= 0) {
+    const option = select.options[select.selectedIndex]
+    if (option) return option.textContent?.trim() ?? 'txt'
+  }
+  const dropdownBtn = document.querySelector(
+    '[class*="language-selector"] [class*="selected"], [class*="language-picker"] button, button[class*="language"]',
+  )
+  if (dropdownBtn && dropdownBtn.textContent?.trim()) return dropdownBtn.textContent.trim()
+  return 'txt'
+}
+
+function isAccepted(): boolean {
+  return Boolean(
+    findElementByExactText(document, 'Accepted', '[class*="result"], [class*="status"], [class*="verdict"], span, div'),
+  )
+}
+
+function getDescription(): string | undefined {
+  const descEl = document.querySelector('.challenge-body-html')
+  return descEl?.innerHTML?.trim() || undefined
+}
+
+function handleAccepted(): void {
+  const slug = getSlugFromPath()
+  if (!slug || lastProcessedKey === slug) return
+
+  const code = extractEditorCode(document)
+  if (!code || code.trim().length === 0) return
+
+  lastProcessedKey = slug
+
+  const payload: Submission = {
+    platform: 'hackerrank',
+    title: getTitle(slug),
+    difficulty: getDifficulty(),
+    language: getLanguage(),
+    code,
+    url: window.location.href.split('?')[0],
+    description: getDescription(),
+  }
+
+  chrome.runtime.sendMessage({ type: 'SUBMISSION_CAPTURED', payload }, (response: SubmissionResponse) => {
+    if (chrome.runtime.lastError) return
+    if (!response?.ok) console.warn('[DSA AutoPush] Failed to push submission:', response?.error)
+  })
+
+  setTimeout(() => {
+    if (lastProcessedKey === slug) lastProcessedKey = null
+  }, 15000)
+}
+
+const checkForVerdict = debounce(() => {
+  if (isAccepted()) handleAccepted()
+}, 500)
+
+const observer = new MutationObserver(checkForVerdict)
+observer.observe(document.body, { childList: true, subtree: true, characterData: true })
+
+setInterval(() => {
+  if (window.location.pathname !== currentPath) {
+    currentPath = window.location.pathname
+    lastProcessedKey = null
+  }
+}, 1000)
