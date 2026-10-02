@@ -1,3 +1,13 @@
+<img width="1918" height="1033" alt="image" src="https://github.com/user-attachments/assets/9a2c8c00-d023-41a4-ba2a-528517fe30a8" />
+<img width="1912" height="994" alt="image" src="https://github.com/user-attachments/assets/e0608662-65fd-44e1-8cef-7dd13cff32be" />
+<img width="394" height="616" alt="image" src="https://github.com/user-attachments/assets/7c3af20a-e4b6-48ee-9e7d-8a4b82f25932" />
+<img width="378" height="586" alt="image" src="https://github.com/user-attachments/assets/c4b7ad45-d5d8-43fa-9c0b-300e707f4f15" />
+<img width="378" height="489" alt="image" src="https://github.com/user-attachments/assets/19bf0352-e16e-4c51-88f5-dca2c0a3445a" />
+<img width="379" height="547" alt="image" src="https://github.com/user-attachments/assets/9163998e-443e-4c84-84a9-d4d3bda60159" />
+
+
+
+
 <div align="center">
   <img src="src/assets/Logo_option_B.png" alt="DSA AutoPush Logo" width="150" />
   <h1>🚀 DSA AutoPush Extension</h1>
