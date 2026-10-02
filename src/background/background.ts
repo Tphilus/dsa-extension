@@ -106,11 +106,10 @@ const processingCache = new Map<string, number>()
 const inFlight = new Set<string>()
 
 async function handleSubmission(submission: Submission, isManual = false): Promise<SubmissionRecord> {
-  const settings = await getSettings()
-  if (!settings.token || !settings.repo) {
-    throw new Error('GitHub token or repository is not configured. Open the extension popup to set it up.')
-  }
-
+  // Everything down to inFlight.add() below must stay synchronous (no await).
+  // The old version checked inFlight *after* `await getSettings()`, which
+  // yields control — two near-simultaneous calls for the same cacheKey could
+  // both pass the "is it locked?" check before either one set the lock.
   const folderName = buildFolderName(submission)
   const cacheKey = `${submission.platform}-${folderName}`
 
@@ -125,6 +124,7 @@ async function handleSubmission(submission: Submission, isManual = false): Promi
     throw new Error('Duplicate submission ignored to prevent double-pushing.')
   }
   processingCache.set(cacheKey, now)
+  inFlight.add(cacheKey)
 
   for (const [k, timestamp] of processingCache.entries()) {
     if (now - timestamp > 30000) {
@@ -132,8 +132,11 @@ async function handleSubmission(submission: Submission, isManual = false): Promi
     }
   }
 
-  inFlight.add(cacheKey)
   try {
+    const settings = await getSettings()
+    if (!settings.token || !settings.repo) {
+      throw new Error('GitHub token or repository is not configured. Open the extension popup to set it up.')
+    }
     return await pushSubmission(submission, folderName, settings)
   } finally {
     inFlight.delete(cacheKey)
