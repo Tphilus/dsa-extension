@@ -1,0 +1,61 @@
+name: Bug Report
+description: File a bug report for the DSA AutoPush extension
+title: "[Bug]: "
+labels: [bug, triage]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report! Please provide as much detail as possible so we can reproduce and fix the issue.
+  - type: input
+    id: contact
+    attributes:
+      label: Contact Details
+      description: How can we get in touch with you if we need more info?
+      placeholder: ex. email@example.com (or GitHub username)
+    validations:
+      required: false
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the bug. What did you expect to happen instead?
+      placeholder: Tell us what you see!
+      value: "A bug happened!"
+    validations:
+      required: true
+  - type: dropdown
+    id: version
+    attributes:
+      label: Extension Version
+      description: What version of DSA AutoPush are you running? (Check chrome://extensions)
+      options:
+        - Latest (Default)
+        - Development (Load unpacked)
+    validations:
+      required: true
+  - type: dropdown
+    id: browsers
+    attributes:
+      label: What browsers are you seeing the problem on?
+      multiple: true
+      options:
+        - Chrome
+        - Brave
+        - Microsoft Edge
+        - Other Chromium Browser
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Please copy and paste any relevant console logs from the extension background page or content script.
+      render: shell
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Contribution Guidelines
+      description: By submitting this issue, you agree to follow our project guidelines.
+      options:
+        - label: I have checked existing issues to make sure this isn't a duplicate.
+          required: true

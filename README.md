@@ -39,13 +39,28 @@ Solve problems like you normally would. When your submission gets an **"Accepted
 
 ---
 
+## 📂 Repository Structure
+
+When you submit a passing solution, the extension automatically organizes it in your GitHub repository using the following structure:
+`[Platform] / [Difficulty] / [Problem Name]`
+
+- **Platform:** The top-level folder is the platform you solved the problem on (e.g., `leetcode`, `hackerrank`, `codeforces`).
+- **Difficulty Bucket:** The extension parses the difficulty rating from the platform to place it into one of three buckets: `Easy`, `Medium`, or `Hard`.
+  - *Codeforces* uses a numeric rating system: Rating ≤ 1100 → `Easy`, Rating 1101 to 1900 → `Medium`, Rating > 1900 → `Hard`.
+- **Problem Name:** It creates a specific folder for the problem itself. For LeetCode/HackerRank, it turns the title into a clean URL slug (e.g., "Two Sum" becomes `two-sum`). For Codeforces, it uses the contest ID and index (e.g., `158A-Next-Round`).
+
+Inside each problem folder, it saves two files: your actual code (e.g., `solution.py`) and a generated `README.md` containing the full problem description and complexity analysis.
+
+---
+
 ## 🛠️ Built With
 
-Designed for performance and modern UI aesthetics, this extension leverages:
-- **[React](https://reactjs.org/) & [TypeScript](https://www.typescriptlang.org/)** - For a robust, type-safe user interface.
-- **[TailwindCSS](https://tailwindcss.com/)** - For sleek, responsive styling.
-- **[Vite](https://vitejs.dev/) & [CRXJS](https://crxjs.dev/vite-plugin)** - To seamlessly bundle modern web tech into a Chrome Extension.
-- **[GitHub REST API](https://docs.github.com/en/rest)** - For secure, seamless file uploads and commits.
+This project is built with modern, developer-friendly web technologies. We chose these tools to ensure the extension is fast, reliable, and easy for anyone in the open-source community to jump in and contribute to:
+
+- **[React](https://reactjs.org/) & [TypeScript](https://www.typescriptlang.org/):** We use React to build the interactive user interface (like the popup dashboard), and TypeScript to catch bugs early by ensuring our code is strictly typed.
+- **[TailwindCSS](https://tailwindcss.com/):** A utility-first CSS framework that allows us to rapidly style the extension and keep the design sleek and responsive without writing custom CSS files.
+- **[Vite](https://vitejs.dev/) & [CRXJS](https://crxjs.dev/vite-plugin):** Vite is an incredibly fast build tool, and CRXJS is a Vite plugin that makes building Chrome Extensions as easy as building a standard web app.
+- **[GitHub REST API](https://docs.github.com/en/rest):** This is the engine that allows the extension to securely authenticate and push your code files directly to your GitHub repository behind the scenes.
 
 ---
 
