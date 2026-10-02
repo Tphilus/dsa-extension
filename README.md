@@ -16,8 +16,9 @@
   <img src="https://github.com/user-attachments/assets/9163998e-443e-4c84-84a9-d4d3bda60159" width="23%" alt="Screenshot 6" />
 </div>
 
-
-
+<br />
+<br />
+<br />
 
 <div align="center">
   <img src="src/assets/Logo_option_B.png" alt="DSA AutoPush Logo" width="150" />
