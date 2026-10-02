@@ -59,7 +59,11 @@ function handleAccepted(isManual: boolean = false): void {
   if (!slug || (!isManual && lastProcessedKey === slug)) return
 
   const code = extractEditorCode(document)
-  if (!code || code.trim().length === 0) return
+  if (!code || code.trim().length === 0) {
+    if (isManual) alert('AutoPush: Could not extract code. The platform UI may have changed. Please open an issue on GitHub.')
+    else console.error('[DSA AutoPush] Accepted detected, but code extraction failed.')
+    return
+  }
 
   if (!isManual) lastProcessedKey = slug
 

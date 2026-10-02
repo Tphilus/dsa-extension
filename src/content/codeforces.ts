@@ -90,7 +90,11 @@ async function processRow(info: AcceptedRowInfo, isManual = false): Promise<void
   }
 
   const source = await fetchSubmissionSource(info.contestId, info.submissionId)
-  if (!source || !source.code.trim()) return
+  if (!source || !source.code.trim()) {
+    if (isManual) alert('AutoPush: Could not extract code. The platform UI may have changed. Please open an issue on GitHub.')
+    else console.error('[DSA AutoPush] Accepted detected, but code extraction failed.')
+    return
+  }
   const problemInfo = await fetchProblemInfo(info.contestId, info.index)
 
   const payload: Submission = {

@@ -54,6 +54,8 @@ Solve problems like you normally would. When your submission gets an **"Accepted
 - **Zero Manual Effort:** Just click "Submit". If it passes, the extension handles the rest without interrupting your focus.
 - **Smart Organization:** Automatically creates neatly organized folders based on problem difficulty (`Easy`, `Medium`, `Hard`).
 - **Comprehensive Documentation:** Doesn't just save code—it generates a robust `README.md` for every problem, complete with a link back to the source and the full problem description.
+- **Offline & Rate-Limit Resiliency:** Never lose a submission. If you drop offline or hit GitHub's API rate limits, the extension intelligently queues your code and automatically resumes the exact second the block is lifted or connection restores.
+- **Smart Alerts:** Proactively warns you exactly when your GitHub Token is about to expire, and notifies you if a platform changes their layout.
 - **Complexity Analysis:** Automatically reads your code to estimate **Time and Space complexity** (e.g., `O(N)` or `O(1)`) and appends it to your notes.
 - **Beautiful Dashboard:** Track your daily streak, view a visual map of your activity, and see your most-used programming languages directly from the extension popup.
 
@@ -79,6 +81,7 @@ This project is built with modern, developer-friendly web technologies. We chose
 
 - **[React](https://reactjs.org/) & [TypeScript](https://www.typescriptlang.org/):** We use React to build the interactive user interface (like the popup dashboard), and TypeScript to catch bugs early by ensuring our code is strictly typed.
 - **[TailwindCSS](https://tailwindcss.com/):** A utility-first CSS framework that allows us to rapidly style the extension and keep the design sleek and responsive without writing custom CSS files.
+- **[TanStack Query (React Query)](https://tanstack.com/query/latest):** Manages all of our asynchronous data fetching, GitHub API caching, and local storage synchronization seamlessly.
 - **[Vite](https://vitejs.dev/) & [CRXJS](https://crxjs.dev/vite-plugin):** Vite is an incredibly fast build tool, and CRXJS is a Vite plugin that makes building Chrome Extensions as easy as building a standard web app.
 - **[GitHub REST API](https://docs.github.com/en/rest):** This is the engine that allows the extension to securely authenticate and push your code files directly to your GitHub repository behind the scenes.
 
@@ -128,7 +131,7 @@ Contributions are what make the open-source community such an amazing place to l
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`).
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`).
 4. Push to the branch (`git push origin feature/AmazingFeature`).
-5. Open a **Pull Request**.
+5. Open a **Pull Request** targeting the `develop` branch.
 
 ---
 

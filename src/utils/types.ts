@@ -22,6 +22,7 @@ export interface Settings {
 export interface GithubUser {
   login: string
   avatarUrl: string
+  expirationDate?: string
 }
 
 export interface RepoSummary {
@@ -53,4 +54,11 @@ export interface SubmissionResponse {
   ok: boolean
   result?: SubmissionRecord
   error?: string
+}
+
+export interface QueuedSubmission {
+  id: string
+  submission: Submission
+  timestamp: number
+  retryAfter?: number
 }
