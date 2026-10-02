@@ -138,26 +138,25 @@ async function handleSubmission(submission: Submission, isManual = false): Promi
   const estimate = estimateComplexity(submission.code, submission.language)
   const readmeContent = buildReadme(submission, difficultyLabel, estimate)
 
-  await Promise.all([
-    upsertFile({
-      owner,
-      repo,
-      branch,
-      token: settings.token,
-      path: codePath,
-      content: submission.code,
-      message: `Add/update solution: ${submission.title} (${PLATFORM_LABELS[submission.platform]})`,
-    }),
-    upsertFile({
-      owner,
-      repo,
-      branch,
-      token: settings.token,
-      path: readmePath,
-      content: readmeContent,
-      message: `Add documentation: ${submission.title} (${PLATFORM_LABELS[submission.platform]})`,
-    })
-  ])
+  await upsertFile({
+    owner,
+    repo,
+    branch,
+    token: settings.token,
+    path: codePath,
+    content: submission.code,
+    message: `Add/update solution: ${submission.title} (${PLATFORM_LABELS[submission.platform]})`,
+  })
+  
+  await upsertFile({
+    owner,
+    repo,
+    branch,
+    token: settings.token,
+    path: readmePath,
+    content: readmeContent,
+    message: `Add documentation: ${submission.title} (${PLATFORM_LABELS[submission.platform]})`,
+  })
 
   const record: SubmissionRecord = {
     id: `${submission.platform}-${folderName}-${Date.now()}`,

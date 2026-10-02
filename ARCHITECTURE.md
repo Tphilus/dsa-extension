@@ -43,7 +43,7 @@ We use **TanStack Query (React Query)** to handle all asynchronous state and cac
   - It listens for `chrome.runtime.onMessage` events.
   - It implements a **Deduplication Cache** (cleared every 30 seconds) to ensure that if a user accidentally spams the submit button, we don't push the code twice.
   - It maintains an **Offline Retry Queue** (`chrome.storage.local`) and uses `chrome.alarms` to automatically re-attempt pushes if the user hits a GitHub rate limit (`429`) or loses internet connection (`Failed to fetch`).
-  - It uses `Promise.all` to concurrently upload the source code file and the auto-generated `README.md` to GitHub.
+  - It uploads the source code file and the auto-generated `README.md` to GitHub sequentially to prevent API conflicts.
 
 ### 🕵️ `src/content/` (Platform Scrapers)
 These scripts are injected directly into third-party websites. Because these websites are SPAs (Single Page Applications) and don't reload, the scripts usually use `MutationObserver` or poll the DOM to detect when a submission finishes.
@@ -64,7 +64,7 @@ These scripts are injected directly into third-party websites. Because these web
 ## 3. Key Architectural Decisions
 
 1. **No Backend**: This extension operates 100% locally. The user's Personal Access Token is saved in `chrome.storage.sync` and all API calls are made directly from the user's browser to GitHub. We have no servers, ensuring maximum privacy.
-2. **Concurrent GitHub Pushing**: The GitHub API (`/contents` endpoint) is used to push files. To maximize speed, we push the `solution` file and the `README.md` simultaneously.
+2. **Sequential GitHub Pushing**: The GitHub API (`/contents` endpoint) is used to push files. To prevent 409 API conflicts, we push the `solution` file and the `README.md` sequentially.
 3. **Base64 Encoding**: GitHub requires files to be base64 encoded before pushing. We use a chunked byte-array technique in `github.ts` to encode large files extremely fast without blocking the browser's main thread.
 4. **Resiliency & Auto-Resume**: Because network states fluctuate and GitHub imposes rate limits, we built an automatic retry mechanism. If a push fails with a `429 Too Many Requests`, we read the `X-RateLimit-Reset` header and schedule a precise `chrome.alarm` to wake the background script and flush the queue the exact second the ban is lifted.
 
