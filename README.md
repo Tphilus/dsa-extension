@@ -30,12 +30,12 @@ Solve problems like you normally would. When your submission gets an **"Accepted
 
 ## ✨ Features
 
-- **🌐 Multi-Platform Support:** Works flawlessly with LeetCode, Codeforces, and HackerRank right out of the box.
-- **⚡ Zero Manual Effort:** Just click "Submit". If it passes, the extension handles the rest without interrupting your focus.
-- **📂 Smart Organization:** Automatically creates neatly organized folders based on problem difficulty (`Easy`, `Medium`, `Hard`).
-- **📝 Comprehensive Documentation:** Doesn't just save code—it generates a robust `README.md` for every problem, complete with a link back to the source and the full problem description.
-- **⏱️ Complexity Analysis (AI):** Automatically reads your code to estimate **Time and Space complexity** (e.g., `O(N)` or `O(1)`) and appends it to your notes.
-- **📊 Beautiful Dashboard:** Track your daily streak, view a visual map of your activity, and see your most-used programming languages directly from the extension popup.
+- **Multi-Platform Support:** Works flawlessly with LeetCode, Codeforces, and HackerRank right out of the box.
+- **Zero Manual Effort:** Just click "Submit". If it passes, the extension handles the rest without interrupting your focus.
+- **Smart Organization:** Automatically creates neatly organized folders based on problem difficulty (`Easy`, `Medium`, `Hard`).
+- **Comprehensive Documentation:** Doesn't just save code—it generates a robust `README.md` for every problem, complete with a link back to the source and the full problem description.
+- **Complexity Analysis:** Automatically reads your code to estimate **Time and Space complexity** (e.g., `O(N)` or `O(1)`) and appends it to your notes.
+- **Beautiful Dashboard:** Track your daily streak, view a visual map of your activity, and see your most-used programming languages directly from the extension popup.
 
 ---
 
