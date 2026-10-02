@@ -1,4 +1,4 @@
-import { debounce, extractEditorCode, findElementByExactText } from '../utils/dom-utils'
+import { debounce, extractEditorCode, findElementByExactText, isExtensionContextValid, safeSendMessage } from '../utils/dom-utils'
 import type { Submission, SubmissionResponse } from '../utils/types'
 
 const KNOWN_LANGUAGES = [
@@ -77,10 +77,13 @@ function handleAccepted(isManual: boolean = false): void {
     description: getDescription(),
   }
 
-  chrome.runtime.sendMessage({ type: 'SUBMISSION_CAPTURED', payload, isManual }, (response: SubmissionResponse) => {
-    if (chrome.runtime.lastError) return
-    if (!response?.ok) console.warn('[DSA AutoPush] Failed to push submission:', response?.error)
-  })
+  safeSendMessage<unknown, SubmissionResponse>(
+    { type: 'SUBMISSION_CAPTURED', payload, isManual },
+    (response) => {
+      if (!response?.ok) console.warn('[DSA AutoPush] Failed to push submission:', response?.error)
+    },
+    teardown,
+  )
 
   setTimeout(() => {
     if (lastProcessedKey === slug) lastProcessedKey = null
@@ -140,7 +143,21 @@ document.addEventListener('keydown', (e) => {
   }
 })
 
+let navigationIntervalId: ReturnType<typeof setInterval> | undefined
+
+// Stops all observers/timers once the extension context is invalidated
+// (e.g. reloaded during development), so this orphaned script goes quiet
+// instead of throwing "Extension context invalidated" on every tick.
+function teardown(): void {
+  observer.disconnect()
+  if (navigationIntervalId !== undefined) clearInterval(navigationIntervalId)
+}
+
 const checkForVerdict = debounce(() => {
+  if (!isExtensionContextValid()) {
+    teardown()
+    return
+  }
   const resultEl = getResultContainer()
   if (resultEl && resultEl.textContent?.trim() === 'Accepted') {
     if (hasJustSubmitted) {
@@ -155,7 +172,11 @@ const observer = new MutationObserver(checkForVerdict)
 observer.observe(document.body, { childList: true, subtree: true, characterData: true })
 
 // LeetCode is a single-page app; reset the dedupe guard on client-side navigation.
-setInterval(() => {
+navigationIntervalId = setInterval(() => {
+  if (!isExtensionContextValid()) {
+    teardown()
+    return
+  }
   if (window.location.pathname !== currentPath) {
     currentPath = window.location.pathname
     lastProcessedKey = null

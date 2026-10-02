@@ -1,12 +1,8 @@
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import {
-  Github,
-  CheckCircle2,
-  XCircle,
   Loader2,
   GitBranch,
   RefreshCw,
-  LogOut,
   Search,
   FolderGit2,
   Lock,
@@ -30,17 +26,12 @@ import {
   Legend,
 } from 'recharts'
 import { useSettings, useSubmissions, useSaveToken, useSaveSettings } from '../hooks/useStorage'
-import { useGithubUser, useGithubRepos, useGithubBranches, useCreateRepo, useVerifyAccess } from '../hooks/useGithub'
-import { PLATFORM_LABELS, getLangIcon, normalizeLanguage } from '../utils/helpers'
+import { useGithubRepos, useGithubBranches, useCreateRepo, useVerifyAccess } from '../hooks/useGithub'
+import { getLangIcon, normalizeLanguage } from '../utils/helpers'
 import { AuthCard } from '../components/AuthCard'
 import { SubmissionRow } from '../components/SubmissionRow'
 import { Field } from '../components/Field'
-import type { Platform, SubmissionRecord, GithubUser, RepoSummary } from '../utils/types'
 import logo from '../assets/Logo_option_B.png'
-
-type AuthResponse = { ok: true } | { ok: false; error: string }
-
-
 
 export default function App() {
   const { data: settings } = useSettings()
@@ -58,7 +49,6 @@ export default function App() {
     }
   }, [settings, token, repo, branch])
 
-  const { data: user } = useGithubUser(token)
   const { data: repos = [], isLoading: reposLoading } = useGithubRepos(token)
   const { data: branches = [] } = useGithubBranches(token, repo)
 
@@ -448,7 +438,7 @@ export default function App() {
                           <Tooltip
                             contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '8px', color: '#fff', fontSize: '9px', padding: '2px 6px' }}
                             itemStyle={{ color: '#fff' }}
-                            formatter={(value: number, name: string) => [analytics.total === 0 ? 0 : value, name]}
+                            formatter={(value: any, name: any) => [analytics.total === 0 ? 0 : value, name]}
                           />
                         </PieChart>
                       </ResponsiveContainer>
@@ -465,7 +455,7 @@ export default function App() {
                             cursor={{ fill: '#27272a', opacity: 0.4 }}
                             contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '8px', color: '#fff', fontSize: '9px', padding: '2px 6px' }}
                             itemStyle={{ color: '#fff' }}
-                            formatter={(value: number, name: string, props: any) => [
+                            formatter={(value: any, _name: any, props: any) => [
                               analytics.total === 0 ? 0 : value,
                               props.payload.name === 'LC' ? 'LeetCode' :
                                 props.payload.name === 'CF' ? 'Codeforces' :
