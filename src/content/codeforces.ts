@@ -160,17 +160,35 @@ function teardown(): void {
   observer.disconnect()
 }
 
+// Codeforces status/submission tables can list a user's entire history, not
+// just one problem. Without this, the very first scan of such a page would
+// treat every already-accepted row as "new" and auto-push the whole history.
+// So the first scan only records what's already there as a baseline; only
+// rows that show up *after* that (a submission completing live) get
+// auto-pushed. Older rows stay reachable via the manual sync button.
+let hasSeededBaseline = false
+const baselineSubmissionIds = new Set<string>()
+
 const checkStatus = debounce(() => {
   if (!isExtensionContextValid()) {
     teardown()
     return
   }
-  findAcceptedRows().forEach(({ row, info }) => {
+  const rows = findAcceptedRows()
+
+  if (!hasSeededBaseline) {
+    rows.forEach(({ info }) => baselineSubmissionIds.add(info.submissionId))
+    hasSeededBaseline = true
+  }
+
+  rows.forEach(({ row, info }) => {
     injectManualSyncButton(row, info)
-    processRow(info)
+    if (!baselineSubmissionIds.has(info.submissionId)) {
+      processRow(info)
+    }
   })
 }, 800)
 
 const observer = new MutationObserver(checkStatus)
 observer.observe(document.body, { childList: true, subtree: true })
-checkStatus() // rows may already be present (e.g. page loaded after the verdict settled)
+checkStatus() // seeds the baseline from whatever's already on the page
