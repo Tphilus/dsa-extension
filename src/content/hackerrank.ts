@@ -54,7 +54,10 @@ function handleAccepted(): void {
   if (!slug || lastProcessedKey === slug) return
 
   const code = extractEditorCode(document)
-  if (!code || code.trim().length === 0) return
+  if (!code || code.trim().length === 0) {
+    console.error('[DSA AutoPush] Accepted detected, but code extraction failed. The platform UI may have changed.')
+    return
+  }
 
   lastProcessedKey = slug
 

@@ -1,5 +1,5 @@
-import { getSettings, addSubmissionRecord } from '../utils/storage'
-import { upsertFile, parseRepo } from '../utils/github'
+import { getSettings, addSubmissionRecord, enqueueSubmission, getQueuedSubmissions, dequeueSubmission } from '../utils/storage'
+import { upsertFile, parseRepo, RateLimitError } from '../utils/github'
 import { slugify, extensionFor, fenceLanguageFor, titleHyphenate } from '../utils/constants'
 import { estimateComplexity } from '../utils/complexity'
 import type { Submission, SubmissionMessage, SubmissionResponse, SubmissionRecord, Platform } from '../utils/types'
@@ -35,7 +35,29 @@ chrome.runtime.onMessage.addListener(
           return
         }
         await recordFailure(message.payload, error.message)
-        await notify('Push failed', `${message.payload?.title || 'Submission'}: ${error.message}`, true)
+        
+        const isNetworkError = error.message.includes('Failed to fetch') || error.message.includes('NetworkError')
+        const isRateLimit = error.name === 'RateLimitError'
+        
+        if (isNetworkError || isRateLimit) {
+          const retryAfter = isRateLimit ? (error as any).reset : undefined
+          await enqueueSubmission({
+            id: `${message.payload.platform}-${slugify(message.payload.title)}-${Date.now()}`,
+            submission: message.payload,
+            timestamp: Date.now(),
+            retryAfter
+          })
+          
+          let alarmDelay = 5 // retry in 5 minutes for offline
+          if (isRateLimit && retryAfter) {
+            alarmDelay = Math.max(1, Math.ceil((retryAfter - Date.now()) / 60000))
+          }
+          chrome.alarms.create('flushOfflineQueue', { delayInMinutes: alarmDelay })
+          await notify('Submission Queued', `${message.payload.title} will be automatically retried later.`, false)
+        } else {
+          await notify('Push failed', `${message.payload?.title || 'Submission'}: ${error.message}`, true)
+        }
+        
         sendResponse({ ok: false, error: error.message })
       })
 
@@ -98,6 +120,12 @@ async function handleSubmission(submission: Submission, isManual = false): Promi
   }
   processingCache.set(cacheKey, now)
 
+  for (const [k, timestamp] of processingCache.entries()) {
+    if (now - timestamp > 30000) {
+      processingCache.delete(k)
+    }
+  }
+
   const { owner, repo } = parseRepo(settings.repo)
   const branch = settings.branch
   const bucket = mapDifficultyBucket(submission)
@@ -107,26 +135,29 @@ async function handleSubmission(submission: Submission, isManual = false): Promi
   const codePath = `${basePath}/solution.${ext}`
   const readmePath = `${basePath}/README.md`
 
-  await upsertFile({
-    owner,
-    repo,
-    branch,
-    token: settings.token,
-    path: codePath,
-    content: submission.code,
-    message: `Add/update solution: ${submission.title} (${PLATFORM_LABELS[submission.platform]})`,
-  })
-
   const estimate = estimateComplexity(submission.code, submission.language)
-  await upsertFile({
-    owner,
-    repo,
-    branch,
-    token: settings.token,
-    path: readmePath,
-    content: buildReadme(submission, difficultyLabel, estimate),
-    message: `Add documentation: ${submission.title} (${PLATFORM_LABELS[submission.platform]})`,
-  })
+  const readmeContent = buildReadme(submission, difficultyLabel, estimate)
+
+  await Promise.all([
+    upsertFile({
+      owner,
+      repo,
+      branch,
+      token: settings.token,
+      path: codePath,
+      content: submission.code,
+      message: `Add/update solution: ${submission.title} (${PLATFORM_LABELS[submission.platform]})`,
+    }),
+    upsertFile({
+      owner,
+      repo,
+      branch,
+      token: settings.token,
+      path: readmePath,
+      content: readmeContent,
+      message: `Add documentation: ${submission.title} (${PLATFORM_LABELS[submission.platform]})`,
+    })
+  ])
 
   const record: SubmissionRecord = {
     id: `${submission.platform}-${folderName}-${Date.now()}`,
@@ -226,3 +257,39 @@ async function notify(title: string, message: string, isError: boolean): Promise
     // Notifications are best-effort; ignore if unavailable (e.g. missing OS permission).
   }
 }
+
+chrome.alarms.onAlarm.addListener(async (alarm) => {
+  if (alarm.name === 'flushOfflineQueue') {
+    const queue = await getQueuedSubmissions()
+    if (!queue || queue.length === 0) return
+
+    let rateLimitedUntil: number | null = null
+
+    for (const item of queue) {
+      if (rateLimitedUntil && Date.now() < rateLimitedUntil) {
+        break // Stop processing if we hit a rate limit
+      }
+
+      if (item.retryAfter && Date.now() < item.retryAfter) {
+        continue // Skip this item if it's still waiting
+      }
+
+      try {
+        await handleSubmission(item.submission, true)
+        await dequeueSubmission(item.id)
+      } catch (error: any) {
+        const isRateLimit = error.name === 'RateLimitError'
+        if (isRateLimit && error.reset) {
+          rateLimitedUntil = error.reset
+        }
+        // If it's a network error, we just leave it in the queue for the next alarm
+      }
+    }
+    
+    const remaining = await getQueuedSubmissions()
+    if (remaining.length > 0) {
+      const nextDelay = rateLimitedUntil ? Math.max(1, Math.ceil((rateLimitedUntil - Date.now()) / 60000)) : 15
+      chrome.alarms.create('flushOfflineQueue', { delayInMinutes: nextDelay })
+    }
+  }
+})

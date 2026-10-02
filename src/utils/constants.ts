@@ -3,6 +3,7 @@ export const STORAGE_KEYS = {
   REPO: 'githubRepo',
   BRANCH: 'githubBranch',
   SUBMISSIONS: 'recentSubmissions',
+  OFFLINE_QUEUE: 'offlineQueue',
 } as const
 
 export const DEFAULT_BRANCH = 'main'

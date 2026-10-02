@@ -47,3 +47,21 @@ export function onStorageChanged(
   chrome.storage.onChanged.addListener(callback)
   return () => chrome.storage.onChanged.removeListener(callback)
 }
+
+export async function enqueueSubmission(item: import('./types').QueuedSubmission): Promise<void> {
+  const result = await chrome.storage.local.get({ [STORAGE_KEYS.OFFLINE_QUEUE]: [] })
+  const queue = result[STORAGE_KEYS.OFFLINE_QUEUE] as import('./types').QueuedSubmission[]
+  const next = [item, ...queue].slice(0, 20)
+  await chrome.storage.local.set({ [STORAGE_KEYS.OFFLINE_QUEUE]: next })
+}
+
+export async function getQueuedSubmissions(): Promise<import('./types').QueuedSubmission[]> {
+  const result = await chrome.storage.local.get({ [STORAGE_KEYS.OFFLINE_QUEUE]: [] })
+  return result[STORAGE_KEYS.OFFLINE_QUEUE]
+}
+
+export async function dequeueSubmission(id: string): Promise<void> {
+  const result = await chrome.storage.local.get({ [STORAGE_KEYS.OFFLINE_QUEUE]: [] })
+  const queue = result[STORAGE_KEYS.OFFLINE_QUEUE] as import('./types').QueuedSubmission[]
+  await chrome.storage.local.set({ [STORAGE_KEYS.OFFLINE_QUEUE]: queue.filter(q => q.id !== id) })
+}
