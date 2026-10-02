@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Chrome extension that auto-captures accepted LeetCode/HackerRank/Codeforces submissions and pushes them to GitHub.",
+  "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "tsx scripts/build.ts",

@@ -4,7 +4,7 @@
   <p><strong>A sleek Chrome extension that automatically synchronizes your competitive programming solutions to GitHub.</strong></p>
 
   <p>
-    <a href="https://github.com/yourusername/dsa-extension/blob/main/LICENSE">
+    <a href="https://github.com/Tphilus/dsa-extension/blob/main/LICENSE">
       <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT" />
     </a>
     <a href="https://reactjs.org/">
@@ -94,7 +94,7 @@ Since this is an open-source project, you can load it directly into your browser
 ### 1️⃣ Download & Build
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/yourusername/dsa-extension.git
+   git clone https://github.com/Tphilus/dsa-extension.git
    cd dsa-extension
    ```
 2. **Install dependencies:**
