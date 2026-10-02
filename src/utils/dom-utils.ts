@@ -6,6 +6,43 @@ export function debounce<T extends (...args: never[]) => void>(fn: T, wait: numb
   }
 }
 
+// True once the extension is reloaded/updated while this content script is
+// still attached to the page — chrome.runtime.id disappears from the orphaned
+// script's context, which is the signal to stop and tear ourselves down.
+export function isExtensionContextValid(): boolean {
+  try {
+    return typeof chrome !== 'undefined' && !!chrome.runtime?.id
+  } catch {
+    return false
+  }
+}
+
+// chrome.runtime.sendMessage throws synchronously ("Extension context
+// invalidated") once the context above goes away. Callers pass onInvalidated
+// to stop their observers/intervals instead of leaving them to error forever.
+export function safeSendMessage<TMessage, TResponse>(
+  message: TMessage,
+  callback?: (response: TResponse) => void,
+  onInvalidated?: () => void,
+): void {
+  if (!isExtensionContextValid()) {
+    onInvalidated?.()
+    return
+  }
+  try {
+    chrome.runtime.sendMessage(message, (response: TResponse) => {
+      if (chrome.runtime.lastError) return
+      callback?.(response)
+    })
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('Extension context invalidated')) {
+      onInvalidated?.()
+    } else {
+      throw error
+    }
+  }
+}
+
 // Tries, in order: Monaco, CodeMirror (5/6), Ace, a plain <textarea>, then any <pre>/<code>.
 // Covers every editor widely used by LeetCode, HackerRank, and Codeforces.
 export function extractEditorCode(root: ParentNode = document): string {

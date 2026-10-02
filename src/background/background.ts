@@ -2,13 +2,8 @@ import { getSettings, addSubmissionRecord, enqueueSubmission, getQueuedSubmissio
 import { upsertFile, parseRepo, RateLimitError } from '../utils/github'
 import { slugify, extensionFor, fenceLanguageFor, titleHyphenate } from '../utils/constants'
 import { estimateComplexity } from '../utils/complexity'
-import type { Submission, SubmissionMessage, SubmissionResponse, SubmissionRecord, Platform } from '../utils/types'
-
-const PLATFORM_LABELS: Record<Platform, string> = {
-  leetcode: 'LeetCode',
-  hackerrank: 'HackerRank',
-  codeforces: 'Codeforces',
-}
+import { PLATFORM_LABELS } from '../utils/helpers'
+import type { Submission, SubmissionMessage, SubmissionResponse, SubmissionRecord, Settings } from '../utils/types'
 
 type DifficultyBucket = 'Easy' | 'Medium' | 'Hard'
 
@@ -37,10 +32,10 @@ chrome.runtime.onMessage.addListener(
         await recordFailure(message.payload, error.message)
         
         const isNetworkError = error.message.includes('Failed to fetch') || error.message.includes('NetworkError')
-        const isRateLimit = error.name === 'RateLimitError'
-        
+        const isRateLimit = error instanceof RateLimitError
+
         if (isNetworkError || isRateLimit) {
-          const retryAfter = isRateLimit ? (error as any).reset : undefined
+          const retryAfter = isRateLimit ? error.reset : undefined
           await enqueueSubmission({
             id: `${message.payload.platform}-${slugify(message.payload.title)}-${Date.now()}`,
             submission: message.payload,
@@ -103,6 +98,12 @@ function buildFolderName(submission: Submission): string {
 }
 
 const processingCache = new Map<string, number>()
+// Files for the same submission (code + README) are upserted with a
+// read-sha-then-write; running two pushes for the same cacheKey concurrently
+// (e.g. a manual "Sync" click while the auto-push is still in flight) races
+// that read/write and GitHub rejects the stale sha with a 409. isManual only
+// bypasses the time-window duplicate check below, never this lock.
+const inFlight = new Set<string>()
 
 async function handleSubmission(submission: Submission, isManual = false): Promise<SubmissionRecord> {
   const settings = await getSettings()
@@ -112,9 +113,14 @@ async function handleSubmission(submission: Submission, isManual = false): Promi
 
   const folderName = buildFolderName(submission)
   const cacheKey = `${submission.platform}-${folderName}`
+
+  if (inFlight.has(cacheKey)) {
+    throw new Error('Duplicate submission ignored to prevent double-pushing.')
+  }
+
   const now = Date.now()
   const lastProcessed = processingCache.get(cacheKey)
-  
+
   if (!isManual && lastProcessed && (now - lastProcessed < 30000)) {
     throw new Error('Duplicate submission ignored to prevent double-pushing.')
   }
@@ -126,6 +132,19 @@ async function handleSubmission(submission: Submission, isManual = false): Promi
     }
   }
 
+  inFlight.add(cacheKey)
+  try {
+    return await pushSubmission(submission, folderName, settings)
+  } finally {
+    inFlight.delete(cacheKey)
+  }
+}
+
+async function pushSubmission(
+  submission: Submission,
+  folderName: string,
+  settings: Settings,
+): Promise<SubmissionRecord> {
   const { owner, repo } = parseRepo(settings.repo)
   const branch = settings.branch
   const bucket = mapDifficultyBucket(submission)
@@ -138,26 +157,25 @@ async function handleSubmission(submission: Submission, isManual = false): Promi
   const estimate = estimateComplexity(submission.code, submission.language)
   const readmeContent = buildReadme(submission, difficultyLabel, estimate)
 
-  await Promise.all([
-    upsertFile({
-      owner,
-      repo,
-      branch,
-      token: settings.token,
-      path: codePath,
-      content: submission.code,
-      message: `Add/update solution: ${submission.title} (${PLATFORM_LABELS[submission.platform]})`,
-    }),
-    upsertFile({
-      owner,
-      repo,
-      branch,
-      token: settings.token,
-      path: readmePath,
-      content: readmeContent,
-      message: `Add documentation: ${submission.title} (${PLATFORM_LABELS[submission.platform]})`,
-    })
-  ])
+  await upsertFile({
+    owner,
+    repo,
+    branch,
+    token: settings.token,
+    path: codePath,
+    content: submission.code,
+    message: `Add/update solution: ${submission.title} (${PLATFORM_LABELS[submission.platform]})`,
+  })
+  
+  await upsertFile({
+    owner,
+    repo,
+    branch,
+    token: settings.token,
+    path: readmePath,
+    content: readmeContent,
+    message: `Add documentation: ${submission.title} (${PLATFORM_LABELS[submission.platform]})`,
+  })
 
   const record: SubmissionRecord = {
     id: `${submission.platform}-${folderName}-${Date.now()}`,
@@ -277,9 +295,8 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
       try {
         await handleSubmission(item.submission, true)
         await dequeueSubmission(item.id)
-      } catch (error: any) {
-        const isRateLimit = error.name === 'RateLimitError'
-        if (isRateLimit && error.reset) {
+      } catch (error) {
+        if (error instanceof RateLimitError && error.reset) {
           rateLimitedUntil = error.reset
         }
         // If it's a network error, we just leave it in the queue for the next alarm

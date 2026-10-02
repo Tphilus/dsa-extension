@@ -1,4 +1,4 @@
-import { debounce } from '../utils/dom-utils'
+import { debounce, isExtensionContextValid, safeSendMessage } from '../utils/dom-utils'
 import type { Submission, SubmissionResponse } from '../utils/types'
 
 // Rather than caching the submit form (fragile — relies on the user staying on
@@ -81,8 +81,13 @@ async function fetchProblemInfo(contestId: string, index: string): Promise<{ tit
 }
 
 async function processRow(info: AcceptedRowInfo, isManual = false): Promise<void> {
+  if (!isExtensionContextValid()) {
+    teardown()
+    return
+  }
+
   const processedKey = `cfProcessed_${info.submissionId}`
-  
+
   if (!isManual) {
     const store = await chrome.storage.local.get({ [processedKey]: false })
     if (store[processedKey]) return
@@ -108,10 +113,13 @@ async function processRow(info: AcceptedRowInfo, isManual = false): Promise<void
     description: problemInfo.description,
   }
 
-  chrome.runtime.sendMessage({ type: 'SUBMISSION_CAPTURED', payload, isManual }, (response: SubmissionResponse) => {
-    if (chrome.runtime.lastError) return
-    if (!response?.ok) console.warn('[DSA AutoPush] Failed to push submission:', response?.error)
-  })
+  safeSendMessage<unknown, SubmissionResponse>(
+    { type: 'SUBMISSION_CAPTURED', payload, isManual },
+    (response) => {
+      if (!response?.ok) console.warn('[DSA AutoPush] Failed to push submission:', response?.error)
+    },
+    teardown,
+  )
 }
 
 function injectManualSyncButton(row: Element, info: AcceptedRowInfo) {
@@ -145,7 +153,18 @@ function injectManualSyncButton(row: Element, info: AcceptedRowInfo) {
   verdictEl.parentElement?.appendChild(btn)
 }
 
+// Stops the observer once the extension context is invalidated (e.g.
+// reloaded during development), so this orphaned script goes quiet instead
+// of throwing "Extension context invalidated" on every tick.
+function teardown(): void {
+  observer.disconnect()
+}
+
 const checkStatus = debounce(() => {
+  if (!isExtensionContextValid()) {
+    teardown()
+    return
+  }
   findAcceptedRows().forEach(({ row, info }) => {
     injectManualSyncButton(row, info)
     processRow(info)
