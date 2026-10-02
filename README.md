@@ -1,26 +1,4 @@
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/9a2c8c00-d023-41a4-ba2a-528517fe30a8" width="100%" alt="Screenshot 1" />
-</div>
-<br />
-<div align="center">
-  <img src="https://github.com/user-attachments/assets/e0608662-65fd-44e1-8cef-7dd13cff32be" width="100%" alt="Screenshot 2" />
-</div>
-<br />
-<div align="center">
-  <img src="https://github.com/user-attachments/assets/7c3af20a-e4b6-48ee-9e7d-8a4b82f25932" width="23%" alt="Screenshot 3" />
-  &nbsp;
-  <img src="https://github.com/user-attachments/assets/c4b7ad45-d5d8-43fa-9c0b-300e707f4f15" width="23%" alt="Screenshot 4" />
-  &nbsp;
-  <img src="https://github.com/user-attachments/assets/19bf0352-e16e-4c51-88f5-dca2c0a3445a" width="23%" alt="Screenshot 5" />
-  &nbsp;
-  <img src="https://github.com/user-attachments/assets/9163998e-443e-4c84-84a9-d4d3bda60159" width="23%" alt="Screenshot 6" />
-</div>
-
-<br />
-<br />
-<br />
-
-<div align="center">
   <img src="src/assets/Logo_option_B.png" alt="DSA AutoPush Logo" width="150" />
   <h1>🚀 DSA AutoPush Extension</h1>
   <p><strong>A sleek Chrome extension that automatically synchronizes your competitive programming solutions to GitHub.</strong></p>
@@ -38,12 +16,32 @@
   </p>
 </div>
 
+<br />
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/9a2c8c00-d023-41a4-ba2a-528517fe30a8" width="100%" alt="Screenshot 1" />
+</div>
+<br />
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/e0608662-65fd-44e1-8cef-7dd13cff32be" width="100%" alt="Screenshot 2" />
+</div>
+<br />
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/7c3af20a-e4b6-48ee-9e7d-8a4b82f25932" width="23%" alt="Screenshot 3" />
+  &nbsp;
+  <img src="https://github.com/user-attachments/assets/c4b7ad45-d5d8-43fa-9c0b-300e707f4f15" width="23%" alt="Screenshot 4" />
+  &nbsp;
+  <img src="https://github.com/user-attachments/assets/19bf0352-e16e-4c51-88f5-dca2c0a3445a" width="23%" alt="Screenshot 5" />
+  &nbsp;
+  <img src="https://github.com/user-attachments/assets/9163998e-443e-4c84-84a9-d4d3bda60159" width="23%" alt="Screenshot 6" />
+</div>
+
 ---
 
 ## 🧐 What does it do?
 
-If you practice data structures and algorithms on platforms like **LeetCode**, **Codeforces**, or **HackerRank**, you know the importance of keeping a record of your solutions to build a strong portfolio. However, doing this manually—copying your code, creating a new file on GitHub, writing a summary, and committing it—is tedious and breaks your flow.
-
+If you practice data structures and algorithms on platforms like **LeetCode**, **Codeforces**, or **HackerRank**, you know the importance of keeping a record of your solutions to build a strong portfolio. However, doing this manually copying your code, creating a new file on GitHub, writing a summary, and committing it is tedious and breaks your flow.
+ 
 **DSA AutoPush** automates this entirely. 
 
 Solve problems like you normally would. When your submission gets an **"Accepted"** verdict, this extension works quietly in the background to grab your code, format it, analyze its complexity, and save it directly to a dedicated GitHub repository.
