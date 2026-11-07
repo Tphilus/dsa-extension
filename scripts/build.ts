@@ -32,7 +32,7 @@ async function buildBackground(): Promise<void> {
 }
 
 async function buildContentScripts(): Promise<void> {
-  const scripts = ['leetcode', 'hackerrank', 'codeforces']
+  const scripts = ['leetcode', 'hackerrank', 'hackerrank-main', 'codeforces']
   await Promise.all(
     scripts.map((name) =>
       esbuildBuild({
